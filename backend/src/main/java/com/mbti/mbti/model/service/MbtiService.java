@@ -1,0 +1,32 @@
+package com.mbti.mbti.model.service;
+
+import com.mbti.mbti.model.dto.*;
+import com.mbti.mbtitype.model.dto.MbtiType;
+import com.mbti.question.model.dto.Question;
+import com.mbti.result.model.dto.Result;
+
+import java.util.List;
+import java.util.Map;
+
+public interface MbtiService {
+
+   List<Question> getAllQuestions();
+
+   Question getQuestionById(Long id);
+
+   Result submitTest(TestRequest request);
+   
+   Map<String, Integer> calculateScores(List<TestAnswer> answers);
+
+   String determineMbtiType(Map<String, Integer> scores);
+
+   Result getResultById(Long id);
+   
+   List<Result> getResultsByUserName(String userName);
+   
+   List<MbtiType> getAllMbtiTypes();
+   
+   MbtiType getMbtiTypeByCode(String typeCode);
+   
+   void deleteResult(Long id);
+}
