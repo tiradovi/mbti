@@ -22,11 +22,12 @@ class ScoreBar extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         children: [
-          Row(
+          Column(
+            // Row 내부에서 SizedBox 사용 불가
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('$label1: $score1',style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('$label2: $score2',style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('$label1: $score1', style: TextStyle(fontWeight: FontWeight.bold),),
+              Text('$label2: $score2', style: TextStyle(fontWeight: FontWeight.bold),),
               SizedBox(height: 4),
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -40,6 +41,7 @@ class ScoreBar extends StatelessWidget {
             ],
           )
         ],
-      ),);
+      ),
+    );
   }
 }

@@ -65,6 +65,7 @@ class _TestScreenState extends State<TestScreen> {
     });
   }
 
+/*
   void _showResult() {
     showDialog(
       context: context,
@@ -82,6 +83,7 @@ class _TestScreenState extends State<TestScreen> {
       ),
     );
   }
+*/
 
   void submitTest() async {
     try {
@@ -89,7 +91,15 @@ class _TestScreenState extends State<TestScreen> {
       if(mounted){
         context.go("/result", extra: {
           'userName': widget.userName,
-          'resultType':result.resultType
+          'resultType':result.resultType,
+          'eScore': result.eScore,
+          'iScore': result.iScore,
+          'sScore': result.sScore,
+          'nScore': result.nScore,
+          'tScore': result.tScore,
+          'fScore': result.fScore,
+          'jScore': result.jScore,
+          'pScore': result.pScore,
         });
       }
     /* showDialog(context: context, builder: (context)=>AlertDialog(
