@@ -51,6 +51,10 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
+      :results.isEmpty?
+          Center(
+            child: Text('검사 기록이 없습니다.', style: TextStyle(fontSize: 18),),
+          )
           : ListView.builder(
               itemCount: results.length,
               padding: EdgeInsets.all(16),
