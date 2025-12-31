@@ -24,7 +24,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
 
   void loadResults() async {
     try {
-      final data = await ModelApiService.getResultsByUserName(widget.userName);
+      final data = await ApiService.getResultsByUserName(widget.userName);
       setState(() {
         results = data;
         isLoading = false;

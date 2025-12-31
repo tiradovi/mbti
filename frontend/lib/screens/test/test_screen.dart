@@ -26,7 +26,7 @@ class _TestScreenState extends State<TestScreen> {
 
   void loadQuestions() async {
     try {
-      final data = await ModelApiService.getQuestions();
+      final data = await ApiService.getQuestions();
       setState(() {
         questions = data;
         isLoading = false;
@@ -85,7 +85,7 @@ class _TestScreenState extends State<TestScreen> {
 
   void submitTest() async {
     try {
-      final result = await ModelApiService.submitTest(widget.userName, answers);
+      final result = await ApiService.submitTest(widget.userName, answers);
       if(mounted){
         context.go("/result", extra: {
           'userName': widget.userName,

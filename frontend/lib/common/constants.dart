@@ -32,6 +32,7 @@ class ApiConstants {
   static const String results = '/results';
   static const String types = '/types';
   static const String health = '/health';
+  static const String questions = '/questions';
 }
 
 class AppConstants {
@@ -56,6 +57,7 @@ class MbtiDimensions {
 class ErrorMessages {
   static const String networkError = '네트워크 연결을 확인해주세요.';
   static const String serverError = '서버 오류가 발생했습니다.';
+  static const String deleteFailed = '삭제에 실패했습니다.';
   static const String loadFailed = '데이터를 불러오는데 실패했습니다.';
   static const String submitFailed = '제출에 실패했습니다.';
   static const String emptyName = '이름을 입력해주세요.';

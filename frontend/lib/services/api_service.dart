@@ -1,10 +1,141 @@
 import 'dart:convert';
 
+import 'package:frontend/common/constants.dart';
 import 'package:frontend/models/answer_model.dart';
 import 'package:frontend/models/question_model.dart';
 import 'package:frontend/models/result_model.dart';
 import 'package:frontend/models/test_request_model.dart';
 import 'package:http/http.dart' as http;
+
+import '../models/mbti_type_model.dart';
+
+
+class ApiService {
+  static const String url = ApiConstants.baseUrl;
+
+  static Future<List<Question>> getQuestions() async {
+    final res = await http.get(Uri.parse('$url${ApiConstants.questions}'));
+
+    if (res.statusCode == 200) {
+      List<dynamic> jsonList = json.decode(res.body);
+
+      return jsonList.map((json) => Question.fromJson(json)).toList();
+    } else {
+      throw Exception(ErrorMessages.loadFailed);
+    }
+  }
+
+  /*
+  Map<int, String> answer내에는 소비자가 작성한 원본 데이터가 존재
+ { 1:'A',
+   2:'B',
+   3:'A'..}
+
+  answer.entries 의 경우 Map을 MapEntry 리스트로 변환
+  결과 = [
+    MapEntry(key:1, value='A'),
+    MapEntry(key:2, value='B'),
+    MapEntry(key:3, value='A'),..
+  ]
+   */
+  static Future<Result> submitTest(String userName, Map<int, String> answers,) async {
+    List<TestAnswer> answerList = answers.entries.map((en) {
+      return TestAnswer(questionId: en.key, selectedOption: en.value);
+    }).toList();
+
+    TestRequest request = TestRequest(userName: userName, answers: answerList);
+
+    final res = await http.post(
+      Uri.parse('$url${ApiConstants.submit}'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(request.toJson()),
+    );
+
+    if (res.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(res.body);
+      return Result.fromJson(jsonData);
+    } else {
+      throw Exception(ErrorMessages.submitFailed);
+    }
+  }
+
+// 모든 MBTI 유형 조회
+  static Future<List<MbtiType>> getAllMbtiTypes() async {
+    final res = await http.get(Uri.parse('$url${ApiConstants.types}'));
+
+    if(res.statusCode == 200) {
+      List<dynamic> jsonList = json.decode(res.body);
+      return jsonList.map((json) => MbtiType.fromJson(json)).toList();
+    } else {
+      throw Exception(ErrorMessages.loadFailed);
+    }
+  }
+
+// 특정 MBTI 유형 조회
+  static Future<MbtiType> getMbtiTypeByCode(String typeCode) async {
+    final res = await http.get(Uri.parse('$url${ApiConstants.types}/$typeCode'));
+
+    if(res.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(res.body);
+      return MbtiType.fromJson(jsonData);
+    } else {
+      throw Exception(ErrorMessages.loadFailed);
+    }
+  }
+
+  /*
+   * 사용자별 결과 조회
+   * GET /api/mbti/results?userName={userName}
+   * Dart는 변수 이름 뒤에 하위 변수나 하위 기능이 존재하지 않는 경우
+   * $변수이름 {} 없이 작성가능
+   * 기능 존재시
+   * ${변수이름.세부기능()}으로 작성
+   */
+  static Future<List<Result>> getResultsByUserName(String userName) async {
+    final res = await http.get(Uri.parse('$url${ApiConstants.results}?userName=$userName'));
+
+    if (res.statusCode == 200) {
+      List<dynamic> jsonList = json.decode(res.body);
+      return jsonList.map((json) => Result.fromJson(json)).toList();
+    } else {
+      throw Exception(ErrorMessages.loadFailed);
+    }
+  }
+
+  // ID로 결과 조회
+  static Future<Result> getResultById(int id) async {
+    final res = await http.get(Uri.parse('$url${ApiConstants.result}/$id'));
+
+    if (res.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(res.body);
+      return Result.fromJson(jsonData);
+    } else {
+      throw Exception(ErrorMessages.loadFailed);
+    }
+  }
+
+  // 결과 삭제 (문제가 생겼을 때만 처리)
+  static Future<void> deleteResult(int id) async {
+    final res = await http.delete(Uri.parse('$url${ApiConstants.result}/$id'));
+
+    if (res.statusCode != 200) {
+      throw Exception(ErrorMessages.deleteFailed);
+    }
+  }
+
+  // 상태 확인
+  static Future<String> healthCheck() async {
+    final res = await http.get(Uri.parse('$url${ApiConstants.health}'));
+
+    if (res.statusCode == 200) {
+      return res.body;
+    } else {
+      throw Exception(ErrorMessages.serverError);
+    }
+  }
+
+}
+
 
 class ModelApiService {
   // models에 작성한 자료형 변수이름 활용하여 데이터 타입 지정
@@ -41,10 +172,7 @@ class ModelApiService {
     MapEntry(key:3, value='A'),..
   ]
    */
-  static Future<Result> submitTest(
-    String userName,
-    Map<int, String> answers,
-  ) async {
+  static Future<Result> submitTest(String userName, Map<int, String> answers,) async {
     List<TestAnswer> answerList = answers.entries.map((en) {
       return TestAnswer(questionId: en.key, selectedOption: en.value);
     }).toList();
@@ -71,6 +199,31 @@ class ModelApiService {
       return Result.fromJson(jsonData);
     } else {
       throw Exception('제출 실패');
+    }
+  }
+
+// 모든 MBTI 유형 조회
+  static Future<List<MbtiType>> getAllMbtiTypes() async {
+    final res = await http.get(Uri.parse('$url/types'));
+
+    if(res.statusCode == 200) {
+      List<dynamic> jsonList = json.decode(res.body);
+      return jsonList.map((json) => MbtiType.fromJson(json)).toList();
+    } else {
+      throw Exception('MBTI 유형 불러오기 실패');
+    }
+  }
+
+// 특정 MBTI 유형 조회
+  static Future<MbtiType> getMbtiTypeByCode(String typeCode) async {
+    final res = await http.get(Uri.parse('$url/types/$typeCode'));
+
+    if(res.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(res.body);
+
+      return MbtiType.fromJson(jsonData);
+    } else {
+      throw Exception('MBTI 유형 조회 실패');
     }
   }
 
