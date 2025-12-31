@@ -68,6 +68,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             /* div와 성격이 같은 SizeBox를 이용해서 이전 결과 보기 버튼 생성 가능, 상태관리를 위해 box로 감싸기 추천 */
+            SizedBox(height: 20),
+            SizedBox(
+              width: 300,
+              height: 50,
+              child: ElevatedButton(onPressed: (){
+                String name = _nameController.text.trim();
+                if(name.isEmpty){
+                  return;
+                }
+                context.go("/history",extra: name);
+              },style:ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[300],
+                foregroundColor: Colors.black87
+              ), child: Text("이전 결과 보기")),
+            )
           ],
         ),
       ),
