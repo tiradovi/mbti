@@ -1,31 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/result_model.dart';
 import 'package:frontend/widgets/score_bar.dart';
 import 'package:go_router/go_router.dart';
 
 class ResultScreen extends StatefulWidget {
-  final String userName;
-  final String resultType;
-  final int eScore;
-  final int iScore;
-  final int sScore;
-  final int nScore;
-  final int tScore;
-  final int fScore;
-  final int jScore;
-  final int pScore;
+  // 로딩 추가 예정
+  final Result result;
 
   const ResultScreen({
     super.key,
-    required this.userName,
-    required this.resultType,
-    required this.eScore,
-    required this.iScore,
-    required this.sScore,
-    required this.nScore,
-    required this.tScore,
-    required this.fScore,
-    required this.jScore,
-    required this.pScore,
+     required this.result,
   });
 
   @override
@@ -33,6 +17,7 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,10 +45,10 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
                 child: Column(
                   children: [
-                    Text('${widget.userName}님의 MBTI는'),
+                    Text('${widget.result.userName}님의 MBTI는'),
                     SizedBox(height: 20),
                     Text(
-                      '${widget.resultType}!',
+                      '${widget.result.resultType}!',
                       style: TextStyle(fontSize: 30),
                     ),
                     SizedBox(height: 10),
@@ -92,26 +77,26 @@ class _ResultScreenState extends State<ResultScreen> {
                     ScoreBar(
                       label1: 'E (외향)',
                       label2: 'I (내향)',
-                      score1: widget.eScore,
-                      score2: widget.iScore,
+                      score1: widget.result.eScore,
+                      score2: widget.result.iScore,
                     ),
                     ScoreBar(
                       label1: 'S (감각)',
                       label2: 'N (직관)',
-                      score1: widget.sScore,
-                      score2: widget.nScore,
+                      score1: widget.result.sScore,
+                      score2: widget.result.nScore,
                     ),
                     ScoreBar(
                       label1: 'T (사고)',
                       label2: 'F (감정)',
-                      score1: widget.tScore,
-                      score2: widget.fScore,
+                      score1: widget.result.tScore,
+                      score2: widget.result.fScore,
                     ),
                     ScoreBar(
                       label1: 'J (판단)',
                       label2: 'P (인식)',
-                      score1: widget.jScore,
-                      score2: widget.pScore,
+                      score1: widget.result.jScore,
+                      score2: widget.result.pScore,
                     ),
                   ],
                 ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/result_model.dart';
 import 'package:frontend/services/api_service.dart';
+import 'package:frontend/widgets/loading_view.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../widgets/error_view.dart';
 
 class ResultDetailScreen extends StatefulWidget {
   final String userName;
@@ -15,6 +18,8 @@ class ResultDetailScreen extends StatefulWidget {
 class _ResultDetailScreenState extends State<ResultDetailScreen> {
   List<Result> results = [];
   bool isLoading = true;
+  String? errorMessage;
+
 
   @override
   void initState() {
@@ -28,19 +33,34 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
       setState(() {
         results = data;
         isLoading = false;
+        errorMessage = null;
       });
     } catch (e) {
       setState(() {
         isLoading = false;
+        errorMessage = '결과 불러오기 실패';
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("결과 불러오기 실패")));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text('불러오는중 ')),
+        body: LoadingView(message: "결과 가져오는 중"),
+      );
+    }
+
+    if (errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(title: Text("오류 발생")),
+        body: ErrorView(message: errorMessage!, onRetry: loadResults),
+      );
+    }
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.userName}님의 검사 기록'),
@@ -49,9 +69,7 @@ class _ResultDetailScreenState extends State<ResultDetailScreen> {
           icon: Icon(Icons.arrow_back),
         ),
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-      :results.isEmpty?
+      body: results.isEmpty?
           Center(
             child: Text('검사 기록이 없습니다.', style: TextStyle(fontSize: 18),),
           )

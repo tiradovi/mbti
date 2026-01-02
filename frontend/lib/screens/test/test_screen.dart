@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/question_model.dart';
 import 'package:frontend/services/api_service.dart';
+import 'package:frontend/widgets/error_view.dart';
+import 'package:frontend/widgets/loading_view.dart';
 import 'package:go_router/go_router.dart';
 
 class TestScreen extends StatefulWidget {
@@ -17,6 +19,7 @@ class _TestScreenState extends State<TestScreen> {
   int currentQuestion = 0;
   Map<int, String> answers = {};
   bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -30,10 +33,12 @@ class _TestScreenState extends State<TestScreen> {
       setState(() {
         questions = data;
         isLoading = false;
+        errorMessage = null;
       });
     } catch (e) {
       setState(() {
         isLoading = false;
+        errorMessage = '질문 불러오기 실패';
       });
     }
   }
@@ -65,7 +70,7 @@ class _TestScreenState extends State<TestScreen> {
     });
   }
 
-/*
+  /*
   void _showResult() {
     showDialog(
       context: context,
@@ -88,21 +93,10 @@ class _TestScreenState extends State<TestScreen> {
   void submitTest() async {
     try {
       final result = await ApiService.submitTest(widget.userName, answers);
-      if(mounted){
-        context.go("/result", extra: {
-          'userName': widget.userName,
-          'resultType':result.resultType,
-          'eScore': result.eScore,
-          'iScore': result.iScore,
-          'sScore': result.sScore,
-          'nScore': result.nScore,
-          'tScore': result.tScore,
-          'fScore': result.fScore,
-          'jScore': result.jScore,
-          'pScore': result.pScore,
-        });
+      if (mounted) {
+        context.go("/result", extra: result);
       }
-    /* showDialog(context: context, builder: (context)=>AlertDialog(
+      /* showDialog(context: context, builder: (context)=>AlertDialog(
         title: Text('검사 완료'),
         content :Text(
           '${widget.userName}님은 ${result['resultType']}입니다.'
@@ -123,7 +117,14 @@ class _TestScreenState extends State<TestScreen> {
     if (isLoading) {
       return Scaffold(
         appBar: AppBar(title: Text('불러오는중 ')),
-        body: Center(child: CircularProgressIndicator()),
+        body: LoadingView(message: "문제 가져오는 중"),
+      );
+    }
+
+    if (errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(title: Text("오류 발생")),
+        body: ErrorView(message: errorMessage!, onRetry: loadQuestions),
       );
     }
     Question q = questions[currentQuestion];

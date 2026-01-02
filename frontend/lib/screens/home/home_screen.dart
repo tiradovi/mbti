@@ -26,76 +26,135 @@ class _HomeScreenState extends State<HomeScreen> {
   */
   final TextEditingController _nameController = TextEditingController();
 
+  String? _errorText; // 에러 메세지를 담을 변수
+
+  bool _validateName() {
+    String name = _nameController.text.trim();
+
+    // 빈값 체크
+    if (name.isEmpty) {
+      setState(() {
+        _errorText = "이름을 입력해주세요";
+      });
+      return false;
+    }
+
+    // 글자 수 체크
+    if (name.length < 2) {
+      setState(() {
+        _errorText = "이름은 2글자 이상이어야 합니다";
+      });
+      return false;
+    }
+
+    // 한글/영문 이외 특수문자나 숫자 포함 체크
+    if (!RegExp(r'^[가-힣a-zA-Z]+$').hasMatch(name)) {
+      setState(() {
+        _errorText = '한글 또는 영문만 입력 가능합니다.';
+      });
+      return false;
+    }
+
+    setState(() {
+      _errorText = null;
+    });
+    return true;
+  }
+
+  /*
+  키보드를 화면에서 사용해야하는 경우
+  화면이 가려지는 것을 방지하기 위해 스크롤 가능하게 처리
+   */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(AppConstants.appName)),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.psychology, size: 100, color: Colors.blue),
-            SizedBox(height: 30),
-            Text(
-              '나의 성격을 알아보는 ${AppConstants.totalQuestion}가지 질문',
-              style: TextStyle(fontSize: 20),
-            ),
-            SizedBox(height: 40),
-            SizedBox(
-              width: 300,
-              child: TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: '이름',
-                  hintText: '이름을 입력하세요',
-                  border: OutlineInputBorder(),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 50),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.psychology, size: 100, color: Colors.blue),
+                SizedBox(height: 30),
+                Text(
+                  '나의 성격을 알아보는 ${AppConstants.totalQuestion}가지 질문',
+                  style: TextStyle(fontSize: 20),
                 ),
-              ),
-            ),
-            SizedBox(height: 20),
-            SizedBox(
-              width: 300,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  String name = _nameController.text.trim();
-                  if(name.isEmpty){
-                    return;
-                  }
-                  context.go("/test",extra: name);
-                  },
-                child: Text('검사 시작하기', style: TextStyle(fontSize: 16),),
-              ),
-            ),
-            /* div와 성격이 같은 SizeBox를 이용해서 이전 결과 보기 버튼 생성 가능, 상태관리를 위해 box로 감싸기 추천 */
-            SizedBox(height: 20),
-            SizedBox(
-              width: 300,
-              height: 50,
-              child: ElevatedButton(onPressed: (){
-                String name = _nameController.text.trim();
-                if(name.isEmpty){
-                  return;
-                }
-                context.go("/history",extra: name);
-              },style:ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[300],
-                foregroundColor: Colors.black87
-              ), child: Text("이전 결과 보기")),
-            ),
-            SizedBox(height: 10),
-            SizedBox(
-              width: 300,
-              height: 50,
-              child: ElevatedButton(
-                  onPressed: () => context.go('/types'),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[300],
-                      foregroundColor: Colors.black87
+                SizedBox(height: 40),
+                /*
+            방법1: 입력할 때마다 유효성 검사
+            방법2: ElevatedButton 클릭시 유효성 검사
+             */
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: '이름',
+                      hintText: '이름을 입력하세요',
+                      border: OutlineInputBorder(),
+                      errorText: _errorText,
+                    ),
+                    onChanged: (value) {
+                      if (_errorText != null) {
+                        setState(() {
+                          _errorText = null;
+                        });
+                      }
+                    },
                   ),
-                  child: Text("MBTI 유형 보기")),
-            )
-          ],
+                ),
+                SizedBox(height: 20),
+                SizedBox(
+                  width: 300,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      String name = _nameController.text.trim();
+                      if (_validateName()) {
+                        context.go("/test", extra: name);
+                      }
+                    },
+                    child: Text('검사 시작하기', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+                /* div와 성격이 같은 SizeBox를 이용해서 이전 결과 보기 버튼 생성 가능, 상태관리를 위해 box로 감싸기 추천 */
+                SizedBox(height: 20),
+                SizedBox(
+                  width: 300,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      String name = _nameController.text.trim();
+                      if (_validateName()) {
+                        context.go('/history', extra: name);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[300],
+                      foregroundColor: Colors.black87,
+                    ),
+                    child: Text("이전 결과 보기"),
+                  ),
+                ),
+                SizedBox(height: 10),
+                SizedBox(
+                  width: 300,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () => context.go('/types'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[300],
+                      foregroundColor: Colors.black87,
+                    ),
+                    child: Text("MBTI 유형 보기"),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

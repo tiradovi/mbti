@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/mbti_type_model.dart';
 import 'package:frontend/services/api_service.dart';
+import 'package:frontend/widgets/loading_view.dart';
 import 'package:go_router/go_router.dart';
 
 class MbtiTypesScreen extends StatefulWidget {
@@ -43,7 +44,7 @@ class _MbtiTypesScreenState extends State<MbtiTypesScreen> {
         ),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? LoadingView()
           : types.isEmpty
           ? Center(child: Text('유형 정보가 없습니다'))
           : GridView.builder(
