@@ -8,11 +8,69 @@ import 'package:frontend/models/test_request_model.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/mbti_type_model.dart';
+import '../models/user_model.dart';
 
 
 class ApiService {
   static const String url = ApiConstants.baseUrl;
 
+  // ================ 사용자 관련 API ==================
+  // 로그인
+  static Future<User> login(String userName) async{
+    final res = await http.post(
+      Uri.parse('$url${ApiConstants.login}'),
+      headers: {'Content-Type':'application/json'},
+      body: json.encode({'userName': userName})
+    );
+
+    if (res.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(res.body);
+      return User.fromJson(jsonData);
+    } else {
+      throw Exception(ErrorMessages.submitFailed);
+    }
+  }
+
+  // 회원가입
+  static Future<User> signup(String userName) async{
+    final res = await http.post(
+      Uri.parse('$url${ApiConstants.signup}'),
+      headers: {'Content-Type':'application/json'},
+      body: json.encode({'userName': userName})
+    );
+
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      Map<String, dynamic> jsonData = json.decode(res.body);
+      return User.fromJson(jsonData);
+    } else {
+      throw Exception(ErrorMessages.submitFailed);
+    }
+  }
+
+  static Future<User?> getUserByUserName(String userName) async{
+    final res = await http.get(Uri.parse('$url${ApiConstants.name}/$userName'));
+
+    if(res.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(res.body);
+      return User.fromJson(jsonData);
+    } else {
+      throw Exception(ErrorMessages.loadFailed);
+    }
+  }
+
+  static Future<List<User>> getAllUsers() async{
+    final res = await http.get(Uri.parse('$url${ApiConstants.userUrl}'));
+
+    if (res.statusCode == 200) {
+      List<dynamic> jsonList = json.decode(res.body);
+
+      return jsonList.map((json) => User.fromJson(json)).toList();
+    } else {
+      throw Exception(ErrorMessages.loadFailed);
+    }
+  }
+
+  // ================ 질문 관련 API ==================
   static Future<List<Question>> getQuestions() async {
     final res = await http.get(Uri.parse('$url${ApiConstants.questions}'));
 

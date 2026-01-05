@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:frontend/models/result_model.dart';
 import 'package:frontend/widgets/score_bar.dart';
 import 'package:go_router/go_router.dart';
@@ -7,16 +8,30 @@ class ResultScreen extends StatefulWidget {
   // 로딩 추가 예정
   final Result result;
 
-  const ResultScreen({
-    super.key,
-     required this.result,
-  });
+  const ResultScreen({super.key, required this.result});
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
 class _ResultScreenState extends State<ResultScreen> {
+  // 링크 복사 함수
+  void _copyResultLink() {
+    String shareUrl = 'https://나의도메인주소.com/result/${widget.result.id}';
+    Clipboard.setData(ClipboardData(text: shareUrl));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "나의 결과 링크가 복사되었습니다.",
+          style: TextStyle(color: Colors.white),
+        ),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.blue,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +117,19 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
               ),
               SizedBox(height: 60),
+              SizedBox(
+                width: 200,
+                child: ElevatedButton.icon(
+                  onPressed: () => _copyResultLink(),
+                  icon: Icon(Icons.share),
+                  label: Text('결과 링크 복사하기'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black87,
+                  ),
+                ),
+              ),
+              SizedBox(height: 40),
               SizedBox(
                 width: 200,
                 child: ElevatedButton(

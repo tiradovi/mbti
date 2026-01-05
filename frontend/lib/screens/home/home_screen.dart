@@ -83,6 +83,32 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(fontSize: 20),
                 ),
                 SizedBox(height: 40),
+                SizedBox(
+                  width: 300,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () => context.go("/login"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text('로그인하기', style: TextStyle(fontSize: 20)),
+                  ),
+                ),
+                SizedBox(height: 10),
+                SizedBox(
+                  width: 300,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () => context.go("/signup"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text('회원가입하기', style: TextStyle(fontSize: 20)),
+                  ),
+                ),
+                SizedBox(height: 20),
                 /*
             방법1: 입력할 때마다 유효성 검사
             방법2: ElevatedButton 클릭시 유효성 검사
@@ -98,12 +124,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       errorText: _errorText,
                     ),
                     onChanged: (value) {
+                      // 모든 상태 실시간 변경은 setState 내부에 작성해야함
+                      _validateName();
+                    },
+                    /*
+                    글자를 입력하면 에러메세지 비우기
+                    onChanged: (value) {
                       if (_errorText != null) {
                         setState(() {
                           _errorText = null;
                         });
                       }
-                    },
+                    },*/
                   ),
                 ),
                 SizedBox(height: 20),
