@@ -32,7 +32,7 @@ class AuthProvider with ChangeNotifier {
 
   // 로그아웃 처리 관련 함수
   Future<void> logout() async {
-    _user = user;
+    _user = null;
 
     // SharedPreferences 에 사용자 정보 삭제
     final prefs = await SharedPreferences.getInstance();
@@ -44,7 +44,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   // 어플 시작시 저장된 로그인 상태 복원
-  Future<void> loadSaveUser(User user) async {
+  Future<void> loadSaveUser() async {
     _isLoading = true;
 
     try {

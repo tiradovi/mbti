@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/constants.dart';
+import 'package:frontend/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,7 +28,15 @@ class _HomeScreenState extends State<HomeScreen> {
   */
   final TextEditingController _nameController = TextEditingController();
 
-  String? _errorText; // 에러 메세지를 담을 변수
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().loadSaveUser();
+    });
+  }
 
   bool _validateName() {
     String name = _nameController.text.trim();
@@ -61,73 +71,100 @@ class _HomeScreenState extends State<HomeScreen> {
     return true;
   }
 
+  void _handleLogout() {}
+
   /*
   키보드를 화면에서 사용해야하는 경우
   화면이 가려지는 것을 방지하기 위해 스크롤 가능하게 처리
    */
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(AppConstants.appName)),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 50),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.psychology, size: 100, color: Colors.blue),
-                SizedBox(height: 30),
-                Text(
-                  '나의 성격을 알아보는 ${AppConstants.totalQuestion}가지 질문',
-                  style: TextStyle(fontSize: 20),
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        final isLoggedIn = authProvider.isLoggedIn;
+        final userName = authProvider.user?.userName;
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(AppConstants.appName),
+            actions: [
+              if (isLoggedIn)
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.account_circle),
+                  onSelected: (value) {
+                    if (value == 'logout') {
+                      _handleLogout();
+                    } else if (value == 'history') {
+                      context.go("/history", extra: userName);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(child: Text('$userName님')),
+                    PopupMenuItem(value: 'history', child: Text('내 기록 보기')),
+                    PopupMenuDivider(),
+                    PopupMenuItem(value: 'logout', child: Text('로그아웃')),
+                  ],
                 ),
-                SizedBox(height: 40),
-                SizedBox(
-                  width: 300,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () => context.go("/login"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
+            ],
+          ),
+          body: SingleChildScrollView(
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 50),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.psychology, size: 100, color: Colors.blue),
+                    SizedBox(height: 30),
+                    Text(
+                      '나의 성격을 알아보는 ${AppConstants.totalQuestion}가지 질문',
+                      style: TextStyle(fontSize: 20),
                     ),
-                    child: Text('로그인하기', style: TextStyle(fontSize: 20)),
-                  ),
-                ),
-                SizedBox(height: 10),
-                SizedBox(
-                  width: 300,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () => context.go("/signup"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
+                    SizedBox(height: 40),
+                    SizedBox(
+                      width: 300,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => context.go("/login"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text('로그인하기', style: TextStyle(fontSize: 20)),
+                      ),
                     ),
-                    child: Text('회원가입하기', style: TextStyle(fontSize: 20)),
-                  ),
-                ),
-                SizedBox(height: 20),
-                /*
+                    SizedBox(height: 10),
+                    SizedBox(
+                      width: 300,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => context.go("/signup"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text('회원가입하기', style: TextStyle(fontSize: 20)),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    /*
             방법1: 입력할 때마다 유효성 검사
             방법2: ElevatedButton 클릭시 유효성 검사
              */
-                SizedBox(
-                  width: 300,
-                  child: TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: '이름',
-                      hintText: '이름을 입력하세요',
-                      border: OutlineInputBorder(),
-                      errorText: _errorText,
-                    ),
-                    onChanged: (value) {
-                      // 모든 상태 실시간 변경은 setState 내부에 작성해야함
-                      _validateName();
-                    },
-                    /*
+                    SizedBox(
+                      width: 300,
+                      child: TextField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: '이름',
+                          hintText: '이름을 입력하세요',
+                          border: OutlineInputBorder(),
+                          errorText: _errorText,
+                        ),
+                        onChanged: (value) {
+                          // 모든 상태 실시간 변경은 setState 내부에 작성해야함
+                          _validateName();
+                        },
+                        /*
                     글자를 입력하면 에러메세지 비우기
                     onChanged: (value) {
                       if (_errorText != null) {
@@ -136,59 +173,61 @@ class _HomeScreenState extends State<HomeScreen> {
                         });
                       }
                     },*/
-                  ),
-                ),
-                SizedBox(height: 20),
-                SizedBox(
-                  width: 300,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      String name = _nameController.text.trim();
-                      if (_validateName()) {
-                        context.go("/test", extra: name);
-                      }
-                    },
-                    child: Text('검사 시작하기', style: TextStyle(fontSize: 16)),
-                  ),
-                ),
-                /* div와 성격이 같은 SizeBox를 이용해서 이전 결과 보기 버튼 생성 가능, 상태관리를 위해 box로 감싸기 추천 */
-                SizedBox(height: 20),
-                SizedBox(
-                  width: 300,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      String name = _nameController.text.trim();
-                      if (_validateName()) {
-                        context.go('/history', extra: name);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      foregroundColor: Colors.black87,
+                      ),
                     ),
-                    child: Text("이전 결과 보기"),
-                  ),
-                ),
-                SizedBox(height: 10),
-                SizedBox(
-                  width: 300,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () => context.go('/types'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[300],
-                      foregroundColor: Colors.black87,
+                    SizedBox(height: 20),
+                    SizedBox(
+                      width: 300,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          String name = _nameController.text.trim();
+                          if (_validateName()) {
+                            context.go("/test", extra: name);
+                          }
+                        },
+                        child: Text('검사 시작하기', style: TextStyle(fontSize: 16)),
+                      ),
                     ),
-                    child: Text("MBTI 유형 보기"),
-                  ),
+                    /* div와 성격이 같은 SizeBox를 이용해서 이전 결과 보기 버튼 생성 가능, 상태관리를 위해 box로 감싸기 추천 */
+                    SizedBox(height: 20),
+                    SizedBox(
+                      width: 300,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          String name = _nameController.text.trim();
+                          if (_validateName()) {
+                            context.go('/history', extra: name);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[300],
+                          foregroundColor: Colors.black87,
+                        ),
+                        child: Text("이전 결과 보기"),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    SizedBox(
+                      width: 300,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => context.go('/types'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[300],
+                          foregroundColor: Colors.black87,
+                        ),
+                        child: Text("MBTI 유형 보기"),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

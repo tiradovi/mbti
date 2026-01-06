@@ -16,7 +16,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/mbti")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Slf4j
 public class MbtiController {
 

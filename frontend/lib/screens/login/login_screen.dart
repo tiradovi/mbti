@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() async {
     if (_validateName()) {
       _isLoading = true;
-      String name = _nameController.text.trim();
+
       try {
         /*
         final user = await ApiService.login(name);
@@ -63,32 +63,35 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         context.go('/test', extra: name);
       */
-      String name = _nameController.text.trim();
-      final user = await ApiService.login(name);
+        String name = _nameController.text.trim();
+        final user = await ApiService.login(name);
 
-      if(mounted){
-        await context.read<AuthProvider>().login(user);
+        if (mounted) {
+          await context.read<AuthProvider>().login(user);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${user.userName}님, 돌아온걸 환영합니다.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        context.go('/');
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${user.userName}님, 돌아온걸 환영합니다.'),
-            backgroundColor: Colors.green,
+            content: Text('로그인에 실패했습니다. 다시 시도해주세요.'),
+            backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),
         );
       }
-      context.go('/');
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('이름이 없습니다. 회원가입을 하거나 다시 시도해주세요.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }finally{
-        _isLoading=false;
-      }
-    }else{
-      return;
     }
   }
 
@@ -151,6 +154,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '계정이 없으신가요?',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    TextButton(
+                      onPressed: () => context.go('/signup'),
+                      child: Text('회원가입하기'),
+                    ),
+                  ],
                 ),
               ],
             ),
