@@ -4,9 +4,14 @@ import 'package:go_router/go_router.dart';
 class GuestSection extends StatelessWidget {
   final TextEditingController nameController;
   final String? errorText;
-  final VoidCallback onValidate;
+  final ValueChanged<String> onChanged;
 
-  const GuestSection({super.key,required this.nameController,required this.errorText,required this.onValidate});
+  const GuestSection({
+    super.key,
+    required this.nameController,
+    required this.errorText,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +27,7 @@ class GuestSection extends StatelessWidget {
               border: OutlineInputBorder(),
               errorText: errorText,
             ),
-            onChanged: (value) {
-              onValidate();
-            },
+            onChanged: onChanged,
           ),
         ),
         SizedBox(height: 20),
@@ -34,10 +37,10 @@ class GuestSection extends StatelessWidget {
           child: ElevatedButton(
             onPressed: () => context.go("/login"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent,
+              backgroundColor: Colors.blue[200],
               foregroundColor: Colors.white,
             ),
-            child: Text('로그인하기', style: TextStyle(fontSize: 20)),
+            child: Text('로그인하기', style: TextStyle(fontSize: 16)),
           ),
         ),
         SizedBox(height: 10),
@@ -47,10 +50,10 @@ class GuestSection extends StatelessWidget {
           child: ElevatedButton(
             onPressed: () => context.go("/signup"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent,
+              backgroundColor: Colors.blue[200],
               foregroundColor: Colors.white,
             ),
-            child: Text('회원가입하기', style: TextStyle(fontSize: 20)),
+            child: Text('회원가입하기',style: TextStyle(fontSize: 16),),
           ),
         ),
         SizedBox(height: 20),

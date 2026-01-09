@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class UserSection extends StatelessWidget {
   final String? userName;
@@ -20,7 +21,15 @@ class UserSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: 30),
-        SizedBox(child: Text("내 주변 10km 다른 유저의 MBTI 확인하기")),
+        SizedBox(
+          width: 300,
+          height: 50,
+          child: ElevatedButton(
+            onPressed: () => context.go("/map"),
+            child: Text("내 위치 확인하기"),
+          ),
+        ),
+        SizedBox(height: 20),
       ],
     );
   }

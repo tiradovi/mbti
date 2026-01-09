@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/common/constants.dart';
 import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/utils/name_validator.dart';
 import 'package:frontend/widgets/home/guest_section.dart';
 import 'package:frontend/widgets/home/profile_menu.dart';
 import 'package:frontend/widgets/home/user_section.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
+import '../../services/network_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,8 +18,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  /*
+  textField TextFormField 처럼 텍스트를 제어하고 관리하는 클래스
+
+  _nameController : private
+
+  예시
+  TextField(controller : _nameController,)
+
+  클라이언트가 필드내부에 텍스트 작성 후 작성한 텍스트를 가져와서 사용하는 경우
+  String name = _nameController.text
+
+  _nameController 내부 텍스트 변경 방법
+  _nameController.text = "홍길동"
+
+   */
   final TextEditingController _nameController = TextEditingController();
   String? _errorText;
+  final NetworkService _networkService = NetworkService();
 
   @override
   void initState() {
@@ -24,8 +43,19 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AuthProvider>().loadSaveUser();
     });
+    _checkNetwork();
   }
 
+  void _checkNetwork() async {
+    final status = await _networkService.checkStatus();
+
+    if (mounted && status.contains("않")) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(status), backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3))
+      );
+    }
+  }
   void _handleLogout() {
     showDialog(
       context: context,
@@ -49,37 +79,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  bool _validateName() {
-    String name = _nameController.text.trim();
+  void _onGuestNameChanged(String value) {
+    setState(() {
+      _errorText = NameValidator.validate(value);
+    });
+  }
 
-    // 빈값 체크
-    if (name.isEmpty) {
-      setState(() {
-        _errorText = "이름을 입력해주세요";
-      });
-      return false;
-    }
-
-    // 글자 수 체크
-    if (name.length < 2) {
-      setState(() {
-        _errorText = "이름은 2글자 이상이어야 합니다";
-      });
-      return false;
-    }
-
-    // 한글/영문 이외 특수문자나 숫자 포함 체크
-    if (!RegExp(r'^[가-힣a-zA-Z]+$').hasMatch(name)) {
-      setState(() {
-        _errorText = '한글 또는 영문만 입력 가능합니다.';
-      });
-      return false;
-    }
+  bool _validateBeforeStart() {
+    final name = _nameController.text.trim();
+    final error = NameValidator.validate(name);
 
     setState(() {
-      _errorText = null;
+      _errorText = error;
     });
-    return true;
+
+    return error == null;
   }
 
   @override
@@ -114,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       GuestSection(
                         nameController: _nameController,
                         errorText: _errorText,
-                        onValidate: _validateName,
+                        onChanged: _onGuestNameChanged,
                       )
                     else
                       UserSection(userName: userName),
@@ -126,16 +140,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (isLoggedIn) {
                             context.go("/test", extra: userName);
                           } else {
-                            if (_validateName()) {
-                              final guestName = _nameController.text.trim();
-                              context.go("/test", extra: guestName);
+                            if (_validateBeforeStart()) {
+                              context.go("/test", extra: _nameController.text.trim());
                             }
                           }
                         },
                         child: Text('검사 시작하기', style: TextStyle(fontSize: 16)),
                       ),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
                     SizedBox(
                       width: 300,
                       height: 50,

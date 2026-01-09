@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
+import '../../utils/name_validator.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,82 +17,51 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorText;
   bool _isLoading = false;
 
-  bool _validateName() {
-    String name = _nameController.text.trim();
-
-    if (name.isEmpty) {
-      setState(() {
-        _errorText = "이름을 입력해주세요.";
-      });
-      return false;
-    }
-
-    if (name.length < 2) {
-      setState(() {
-        _errorText = "이름은 최소 2글자 이상이어야 합니다.";
-      });
-      return false;
-    }
-
-    if (!RegExp(r'^[가-힣a-zA-Z]+$').hasMatch(name)) {
-      setState(() {
-        _errorText = "한글 또는 영문만 입력 가능합니다. \n(특수문자, 숫자 불가))";
-      });
-      return false;
-    }
+  void _handleLogin() async {
+    final name = _nameController.text.trim();
 
     setState(() {
-      _errorText = null;
-    });
-    return true;
-  }
-
-  void _handleLogin() async {
-    if (_validateName()) {
       _isLoading = true;
+      _errorText = NameValidator.validate(name);
+    });
 
-      try {
-        /*
-        final user = await ApiService.login(name);
+    if (_errorText != null) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${user.userName}님, 돌아온걸 환영합니다.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        context.go('/test', extra: name);
-      */
-        String name = _nameController.text.trim();
-        final user = await ApiService.login(name);
+    try {
+      final user = await ApiService.login(name);
 
-        if (mounted) {
-          await context.read<AuthProvider>().login(user);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${user.userName}님, 돌아온걸 환영합니다.'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
-        context.go('/');
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('로그인에 실패했습니다. 다시 시도해주세요.'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      await context.read<AuthProvider>().login(user);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${user.userName}님, 돌아온걸 환영합니다.'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      context.go('/');
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('로그인에 실패했습니다. 다시 시도해주세요.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -124,35 +94,40 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 300,
                   child: TextField(
                     controller: _nameController,
-                    onChanged: (value) {
-                      _validateName;
-                    },
+                    enabled: !_isLoading,
                     decoration: InputDecoration(
                       labelText: '이름',
                       hintText: '이름을 입력하세요',
                       border: OutlineInputBorder(),
                       errorText: _errorText,
                     ),
+                    onChanged: (value) {
+                      setState(() {
+                        _errorText = NameValidator.validate(value);
+                      });
+                    },
                   ),
                 ),
-
                 SizedBox(height: 30),
                 SizedBox(
                   width: 300,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _handleLogin,
+                    onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[400],
                     ),
-                    child: Text(
-                      '로그인하기',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            '로그인하기',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -164,7 +139,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                     TextButton(
-                      onPressed: () => context.go('/signup'),
+                      onPressed: _isLoading
+                          ? null
+                          : () => context.go('/signup'),
                       child: Text('회원가입하기'),
                     ),
                   ],
@@ -175,5 +152,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 }

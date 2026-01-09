@@ -6,12 +6,14 @@ import 'package:frontend/models/question_model.dart';
 import 'package:frontend/models/result_model.dart';
 import 'package:frontend/models/test_request_model.dart';
 import 'package:dio/dio.dart';
+import 'package:frontend/services/network_service.dart';
 
 import '../models/mbti_type_model.dart';
 import '../models/user_model.dart';
 
 class ApiService {
   static const String url = ApiConstants.baseUrl;
+  static NetworkService _networkService = NetworkService();
 
   /*
   Dio의 장점
@@ -38,17 +40,14 @@ class ApiService {
       baseUrl: url,
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 3),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
     ),
   );
 
-
   static Future<User> login(String userName) async {
     final res = await _dio.post(
-        ApiConstants.login,
-        data: {'userName': userName}
+      ApiConstants.login,
+      data: {'userName': userName},
     );
 
     if (res.statusCode == 200) {
@@ -74,6 +73,8 @@ class ApiService {
   }
 
   static Future<List<Question>> getQuestions() async {
+    print('$_networkService.checkStatus()');
+
     final res = await _dio.get(ApiConstants.questions);
 
     if (res.statusCode == 200) {
@@ -84,17 +85,17 @@ class ApiService {
     }
   }
 
-  static Future<Result> submitTest(String userName, Map<int, String> answers,) async {
+  static Future<Result> submitTest(
+    String userName,
+    Map<int, String> answers,
+  ) async {
     List<TestAnswer> answerList = answers.entries.map((en) {
       return TestAnswer(questionId: en.key, selectedOption: en.value);
     }).toList();
 
     TestRequest request = TestRequest(userName: userName, answers: answerList);
 
-    final res = await _dio.post(
-      ApiConstants.submit,
-      data: request.toJson(),
-    );
+    final res = await _dio.post(ApiConstants.submit, data: request.toJson());
     if (res.statusCode == 200) {
       return Result.fromJson(res.data);
     } else {
@@ -139,7 +140,6 @@ class ApiService {
     }
   }
 
-
   static Future<Result> getResultById(int id) async {
     final res = await _dio.get('${ApiConstants.result}/$id');
 
@@ -159,7 +159,7 @@ class ApiService {
     }
   }
 
-  static Future<Result> healthCheck(int id) async {
+  static Future<Result> healthCheck() async {
     final res = await _dio.get(ApiConstants.health);
 
     if (res.statusCode == 200) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/services/api_service.dart';
+import 'package:frontend/utils/name_validator.dart';
 import 'package:go_router/go_router.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -14,64 +15,45 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _errorText;
   bool _isLoading = false;
 
-  bool _validateName() {
-    String name = _nameController.text.trim();
-
-    if (name.isEmpty) {
-      setState(() {
-        _errorText = "이름을 입력해주세요.";
-      });
-      return false;
-    }
-
-    if (name.length < 2) {
-      setState(() {
-        _errorText = "이름은 최소 2글자 이상이어야 합니다.";
-      });
-      return false;
-    }
-
-    if (!RegExp(r'^[가-힣a-zA-Z]+$').hasMatch(name)) {
-      setState(() {
-        _errorText = "한글 또는 영문만 입력 가능합니다. \n(특수문자, 숫자 불가))";
-      });
-      return false;
-    }
+  void _handleSignup() async {
+    final name = _nameController.text.trim();
 
     setState(() {
-      _errorText = null;
+      _isLoading = true;
+      _errorText = NameValidator.validate(name);
     });
-    return true;
-  }
 
-  void _handleSignup() async {
-    _isLoading = true;
-    if (_validateName()) {
-      String name = _nameController.text.trim();
-      try {
-        final user = await ApiService.signup(name);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${user.userName}님, 회원가입이 완료되었습니다!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        context.go('/');
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('회원가입에 실패했습니다. 다시 시도해주세요.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }else{
-      _isLoading=false;
+    if (_errorText != null) {
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('양식이 맞지 않습니다. 다시 시도해주세요.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final user = await ApiService.signup(name);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${user.userName}님, 회원가입이 완료되었습니다!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      context.go('/');
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('회원가입에 실패했습니다. 다시 시도해주세요.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -116,13 +98,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     onChanged: (value) {
                       setState(() {
-                        if (RegExp(r'[0-9]').hasMatch(value)) {
-                          _errorText = '숫자는 입력할 수 없습니다.';
-                        } else if (RegExp(r'[^가-힣a-zA-Z]').hasMatch(value)) {
-                          _errorText = '한글과 영어만 입력 가능합니다.';
-                        } else {
-                          _errorText = null;
-                        }
+                        _errorText = NameValidator.validate(value);
                       });
                     },
                   ),
